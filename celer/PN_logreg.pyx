@@ -98,8 +98,7 @@ def newton_celer(
     cdef bint positive = 0
 
     for t in range(max_iter):
-        p_obj = primal(LOGREG, alpha, n_samples, &Xw[0], &y[0], n_features,
-                      &w[0], &weights_pen[0])
+        p_obj = primal(LOGREG, alpha, Xw, y, w, weights_pen)
 
         # theta = y * sigmoid(-y * Xw) / alpha
         create_dual_pt(LOGREG, n_samples, alpha, &theta[0], &Xw[0], &y[0])
@@ -243,7 +242,7 @@ cpdef int PN_logreg(
         floating tol_inner, floating[:] Xw,
         floating[:] exp_Xw, floating[:] low_exp_Xw, floating[:] aux,
         int[:] is_positive_label, floating[:] X_mean,
-        bint center, floating[:] weights_pen, bint blitz_sc):
+        floating[:] weights_pen, bint center, bint blitz_sc):
 
     cdef int n_samples = Xw.shape[0]
     cdef int ws_size = WS.shape[0]
@@ -378,8 +377,7 @@ cpdef int PN_logreg(
             aux[i] /= - max(alpha, norm_Xaux)
 
         d_obj = dual(LOGREG, n_samples, alpha, 0, &aux[0], &y[0])
-        p_obj = primal(LOGREG, alpha, n_samples, &Xw[0], &y[0],
-                       n_features, &w[0], &weights_pen[0])
+        p_obj = primal(LOGREG, alpha, Xw, y, w, weights_pen)
 
         gap = p_obj - d_obj
         if gap < tol_inner:
