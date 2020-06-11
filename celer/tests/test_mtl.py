@@ -184,16 +184,21 @@ def test_GroupLasso(sparse_X):
 
 
 if __name__ == "__main__":
-    pass
-    # from celer.datasets import load_climate
-    # X, y = load_climate()
+    sparse_X, fit_intercept, normalize = 1, 1, 0
+    n_features = 1000
+    X, y = build_dataset(
+        n_samples=100, n_features=n_features, sparse_X=sparse_X)
+    print(X.sum(), norm(y))
+    alpha_max = norm(X.T @ y, ord=np.inf) / len(y)
+    alpha = alpha_max / 10
+    clf = Lasso(alpha, tol=1e-12, fit_intercept=fit_intercept,
+                normalize=normalize, verbose=2)
+    clf.fit(X, y)
+    # take groups of size 1:
+    clf1 = GroupLasso(alpha=alpha, groups=1, tol=1e-12,
+                      fit_intercept=fit_intercept, normalize=normalize,
+                      verbose=2)
+    clf1.fit(X, y)
 
-    # center, normalize = True, True
-
-    # from celer.homotopy import _alpha_max_grp
-    # alpha_max = _alpha_max_grp(X, y, 7, center, normalize)
-
-    # clf = GroupLasso(alpha=alpha_max / 100, groups=7,
-    #                  verbose=2, fit_intercept=center, normalize=normalize)
-    # clf.alpha = alpha_max / 100
-    # clf.fit(X, y)
+    np.testing.assert_allclose(clf1.coef_, clf.coef_, atol=1e-6)
+    np.testing.assert_allclose(clf1.intercept_, clf.intercept_, rtol=1e-4)
